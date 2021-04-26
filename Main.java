@@ -32,6 +32,8 @@ class Bus {
 	String startDate; //1일(당일)
 	String startTime; //1가지
 	int people = 0;
+	int seatNum = 0;
+	String[] seatInfo = new String[4];
 	boolean[] seat = new boolean[10];
 
 
@@ -42,8 +44,12 @@ class Bus {
 		this.startTime = startTime;
 	}
 
-
-
+	public void setPeople(int people) {
+		this.people = people;
+	}
+	public void setNum(int num) {
+		this.seatNum = num;
+	}
 
 }
 
@@ -139,11 +145,13 @@ public class Main {
 
 	public static int printMenu() throws Exception {
 		// TODO Auto-generated method stub
-		int in=0;
+		String in;
 		while(true) {
-			System.out.println("1. 회원가입    2. 로그인    3. 종료");
-			in = Integer.parseInt(br.readLine());
-			switch(in) {
+			System.out.println("1. 회원가입    2. 로그인    3. 종료(q)");
+			in = br.readLine();
+			if(in.equals("q"))
+				System.exit(0);
+			switch(Integer.parseInt(in)) {
 			case 1:
 				joinMember();
 				break;
@@ -410,9 +418,179 @@ public class Main {
 
 	}
 
-	public static void checkReservation(Member member) {
+	public static void checkReservation(Member member) throws Exception {
 		// TODO Auto-generated method stub
+		while(true) {
+			System.out.println("예매 내역 조회 및 취소");
+			System.out.println("1. 예매 내역 조회    2. 예매 취소");
+			int in = Integer.parseInt(br.readLine());
 
+			switch(in) {
+			case 1:
+				for (int i = 0; i < member.b.size(); i++) {
+					checkDateIsBefore(member.b.get(i));
+				}
+				break;
+			case 2:
+				cancelReservation(member);
+				break;
+			}
+		}
+
+	}
+
+
+
+
+
+
+
+
+	public static void cancelReservation(Member member) throws Exception {
+		// TODO Auto-generated method stub
+		for (int i = 0; i < member.b.size(); i++) {
+
+			Bus bus = member.b.get(i);
+			if(Integer.parseInt(bus.startDate)>Integer.parseInt(nowDate)) {
+				System.out.println("버스 출발 시간:"+bus.startTime);
+				System.out.println("버스 출발 날짜:"+bus.startDate);
+				System.out.println("버스 출발 장소:"+bus.startingPoint);
+				System.out.println("버스 도착 장소:"+bus.destination);
+				System.out.println("예매를 취소하시겠습니까?");
+				String an = br.readLine();
+				if(an.equals("예")) {
+					System.out.println("예매가 취소되었습니다.");
+					System.out.println("환불 금액은 "+bus.seatNum*10000+"원 입니다");
+					cancelBeforeBus(member, bus);
+				}else if(an.equals("아니오")) {
+					return;
+				}
+
+			}else if(Integer.parseInt(bus.startDate)==Integer.parseInt(nowDate)) {
+				System.out.println("버스 출발 시간:"+bus.startTime);
+				System.out.println("버스 출발 날짜:"+bus.startDate);
+				System.out.println("버스 출발 장소:"+bus.startingPoint);
+				System.out.println("버스 도착 장소:"+bus.destination);
+				System.out.println("예매를 취소하시겠습니까? 당일 취소의 경우는 금액이 환불 되지 않습니다.");
+				String an = br.readLine();
+				if(an.equals("예")) {
+					System.out.println("예매가 취소되었습니다.");
+					cancelBeforeBus(member, bus);
+				}else if(an.equals("아니오")) {
+					return;
+				}
+			}
+		}
+	}
+
+
+
+
+
+
+
+	public static void cancelBeforeBus(Member member, Bus bus2) {
+		// TODO Auto-generated method stub
+		int idx = member.b.indexOf(bus2);
+		member.b.remove(idx);
+
+	}
+
+
+
+
+	public static void checkDateIsBefore(Bus bus2) {
+		// TODO Auto-generated method stub
+		String y1 = (String) nowDate.subSequence(0, 4);
+		String y2 = (String) bus2.startDate.subSequence(0, 4);
+		String m1 = (String) nowDate.subSequence(4, 6);
+		String m2 = (String) bus2.startDate.subSequence(4, 6);
+		String d1 = (String) nowDate.subSequence(6, 8);
+		String d2 = (String) bus2.startDate.subSequence(6, 8);
+
+		bus2.startTime = checkTime(bus2.startTime);
+
+		String h1 = (String) nowTime.subSequence(0, 2);
+		String h2 = (String)bus2.startTime.subSequence(0, 2);
+		String mi1 = (String) nowTime.subSequence(2, 4);
+		String mi2 = (String) bus2.startTime.subSequence(2, 4);
+
+
+		if(Integer.parseInt(y1)==Integer.parseInt(y2)) {
+			if(Integer.parseInt(m1)==Integer.parseInt(m2)) {
+				if(Integer.parseInt(d1)<Integer.parseInt(d2)) {
+
+					System.out.println("버스 출발 날짜:"+bus2.startDate);
+					System.out.println("버스 출발 시간:"+bus2.startTime);
+					System.out.println("예매 좌석 수:"+bus2.seatNum);
+					System.out.println("예매 좌석: ");
+					showBookedSeat(bus2.seatInfo,bus2.seatNum);
+
+				}else if(Integer.parseInt(d1)==Integer.parseInt(d2)) {
+
+					if(Integer.parseInt(h1)==Integer.parseInt(h2)) {
+						if(Integer.parseInt(mi1)<=Integer.parseInt(mi2)) {
+							System.out.println("버스 출발 날짜:"+bus2.startDate);
+							System.out.println("버스 출발 시간:"+bus2.startTime);
+							System.out.println("예매 좌석 수:"+bus2.seatNum);
+							System.out.println("예매 좌석: ");
+							showBookedSeat(bus2.seatInfo,bus2.seatNum);
+						}
+					}else if(Integer.parseInt(h1)<Integer.parseInt(h2)) {
+						if(Integer.parseInt(mi1)<=Integer.parseInt(mi2)) {
+							System.out.println("버스 출발 날짜:"+bus2.startDate);
+							System.out.println("버스 출발 시간:"+bus2.startTime);
+							System.out.println("예매 좌석 수:"+bus2.seatNum);
+							System.out.println("예매 좌석: ");
+							showBookedSeat(bus2.seatInfo,bus2.seatNum);
+						}
+					}
+				}
+			}else if(Integer.parseInt(m1)<Integer.parseInt(m2)) {
+				System.out.println("버스 출발 날짜:"+bus2.startDate);
+				System.out.println("버스 출발 시간:"+bus2.startTime);
+				System.out.println("예매 좌석 수:"+bus2.seatNum);
+				System.out.println("예매 좌석: ");
+				showBookedSeat(bus2.seatInfo,bus2.seatNum);
+			}
+		}else if(Integer.parseInt(y1)<Integer.parseInt(y2)) {
+			System.out.println("버스 출발 날짜:"+bus2.startDate);
+			System.out.println("버스 출발 시간:"+bus2.startTime);
+			System.out.println("예매 좌석 수:"+bus2.seatNum);
+			System.out.print("예매 좌석: ");
+			showBookedSeat(bus2.seatInfo,bus2.seatNum);
+		}
+	}
+
+
+
+
+	public static void showBookedSeat(String[] seatInfo,int num) {
+		// TODO Auto-generated method stub
+		System.out.println("\t"+"0    1");
+		boolean[] seat = new boolean[10];
+		for (int i = 0; i < num; i++) {
+
+			String x = Character.toString(seatInfo[i].charAt(0));
+			String y = Character.toString(seatInfo[i].charAt(1));
+			seat[2*Integer.parseInt(x)+Integer.parseInt(y)] = true;
+
+
+		}
+		int cnt = 0;
+		for (int i = 0; i < 9; i+=2) {
+			System.out.print((cnt++)+"\t");
+			for (int j = 0; j < 2; j++) {
+
+				if(seat[i+j]) {
+					System.out.print("●"+"    ");
+				}else
+					System.out.print("○"+"    ");
+			}
+
+
+			System.out.println();
+		}
 	}
 
 
@@ -460,17 +638,22 @@ public class Main {
 
 	public static void showTickets(Member member) {
 		// TODO Auto-generated method stub
-		System.out.println("==========정기권 확인==========");
-		for (int i = 0; i < member.ticketCnt; i++) {
-			Ticket ticket = member.ticket[i];
-			if(ticket.type.equals("day")) {
-				System.out.println("정기권 종류: 기간제");
-				System.out.println("정기권 유효 기간: "+ticket.remainDays);
-			}else if(ticket.type.equals("num")) {
-				System.out.println("정기권 종류: 횟수제");
-				System.out.println("정기권 남은 횟수: "+ticket.remainNum);
+		if(count>0) {
+			System.out.println("==========정기권 확인==========");
+			for (int i = 0; i < member.ticketCnt; i++) {
+				Ticket ticket = member.ticket[i];
+				if(ticket.type.equals("day")) {
+					System.out.println("정기권 종류: 기간제");
+					System.out.println("정기권 유효 기간: "+ticket.remainDays);
+				}else if(ticket.type.equals("num")) {
+					System.out.println("정기권 종류: 횟수제");
+					System.out.println("정기권 남은 횟수: "+ticket.remainNum);
+				}
 			}
+		}else {
+			System.out.println();
 		}
+
 	}
 
 
@@ -962,7 +1145,6 @@ public class Main {
 	}
 
 
-
 	public static void reserve(Member member) throws Exception {
 		// TODO Auto-generated method stub
 		while(true) {
@@ -974,7 +1156,7 @@ public class Main {
 			member.date = nowDate;
 			System.out.print("현재 시간을 입력하세요:");
 			nowTime = br.readLine();
-			checkTime();
+			nowTime = checkTime(nowTime);
 			member.time = nowTime;
 			String dep,arr,goDate;
 			System.out.print("출발지를 입력하세요:");
@@ -983,6 +1165,7 @@ public class Main {
 			arr = br.readLine();
 			System.out.print("출발 날짜를 입력하세요:");
 			goDate = br.readLine();
+			goDate = checkDate(goDate);
 			if(dep.equals(arr)){
 				System.out.println("출발지와 도착지가 일치할 수 없습니다.");
 				continue;
@@ -1004,6 +1187,8 @@ public class Main {
 							System.out.println();
 							System.out.print("출발 시간을 입력하세요:");
 							String depTime = br.readLine();
+
+
 							System.out.print("예매를 원하는 좌석수를 입력하세요:");
 							int seat = Integer.parseInt(br.readLine());
 
@@ -1014,13 +1199,19 @@ public class Main {
 							if(member.ticketCnt>0) {
 								Bus bookedBus = bookSeatTicket(nowDate,member,dep,arr,depTime,seat);
 								if(bookedBus!=null) {
+									bookedBus.setNum(seat);
+									bookedBus.startTime = depTime;
+									bookedBus.startDate = goDate;
 									member.b.add(bookedBus);
 									return;
 								}
 
-							}else {
+							}else if(member.ticketCnt==0){
 								Bus bookedBus = bookSeat(dep,arr,depTime,seat);
 								if(bookedBus!=null) {
+									bookedBus.setNum(seat);
+									bookedBus.startTime = depTime;
+									bookedBus.startDate = goDate;
 									member.b.add(bookedBus);
 									return;
 								}
@@ -1047,6 +1238,7 @@ public class Main {
 		// TODO Auto-generated method stub
 		for (int i = 0; i < bus.size(); i++) {
 			if(bus.get(i).startingPoint.equals(dep)&&bus.get(i).destination.equals(arr)) {
+				bus.get(i).startTime = checkTime(bus.get(i).startTime);
 				if(bus.get(i).startTime.equals(depTime)) {
 
 					if(bus.get(i).people+seat<=10) {
@@ -1054,6 +1246,9 @@ public class Main {
 						System.out.print("원하시는 좌석을 입력해주세요:(예:01)");
 						String wantSeat = br.readLine();
 						String[] temp = wantSeat.split(" ");
+						for (int j = 0; j < temp.length; j++) {
+							bus.get(i).seatInfo[j] = temp[j];
+						}
 						if(seat==temp.length) {
 							for (int j = 0; j < temp.length; j++) {
 								System.out.println("결제하시겠습니까?");
@@ -1064,6 +1259,7 @@ public class Main {
 										if(!bus.get(i).seat[2*Character.getNumericValue(temp[j].charAt(0))+Character.getNumericValue(temp[j].charAt(1))]) {
 											bus.get(i).seat[2*Character.getNumericValue(temp[j].charAt(0))+Character.getNumericValue(temp[j].charAt(1))] = true;
 											System.out.println("기간제 정기권을 사용하여 예매 완료");
+											bus.get(i).setPeople(seat);
 											member.ticket[member.ticketCnt-1].remainDays--;
 											return bus.get(i);
 										}
@@ -1075,6 +1271,7 @@ public class Main {
 											System.out.println("정기권 사용 가능 횟수: "+member.ticket[member.ticketCnt-1].remainNum);
 											System.out.println("횟수제 정기권을 사용하여 예매 완료");
 											member.ticket[member.ticketCnt-1].remainNum--;
+											bus.get(i).setPeople(seat);
 											return bus.get(i);
 										}
 
@@ -1082,6 +1279,7 @@ public class Main {
 										if(!bus.get(i).seat[2*Character.getNumericValue(temp[j].charAt(0))+Character.getNumericValue(temp[j].charAt(1))]) {
 											bus.get(i).seat[2*Character.getNumericValue(temp[j].charAt(0))+Character.getNumericValue(temp[j].charAt(1))] = true;
 											writePoint(new Point(nowDate,nowTime,10000,1000), member);
+											bus.get(i).setPeople(seat);
 											System.out.println("예매 완료");
 											return bus.get(i);
 										}
@@ -1133,6 +1331,9 @@ public class Main {
 						System.out.print("원하시는 좌석을 입력해주세요:(예:01)");
 						String wantSeat = br.readLine();
 						String[] temp = wantSeat.split(" ");
+						for (int j = 0; j < temp.length; j++) {
+							bus.get(i).seatInfo[j] = temp[j];
+						}
 						if(seat==temp.length) {
 							for (int j = 0; j < temp.length; j++) {
 								System.out.println("결제하시겠습니까?");
@@ -1142,6 +1343,7 @@ public class Main {
 									if(!bus.get(i).seat[2*Character.getNumericValue(temp[j].charAt(0))+Character.getNumericValue(temp[j].charAt(1))]) {
 										bus.get(i).seat[2*Character.getNumericValue(temp[j].charAt(0))+Character.getNumericValue(temp[j].charAt(1))] = true;
 										System.out.println("예매 완료");
+										bus.get(i).setPeople(seat);
 										return bus.get(i);
 									}
 
@@ -1165,65 +1367,65 @@ public class Main {
 		return null;
 	}
 
-	public static void checkTime() {
+	public static String checkTime(String time) {
 		while(true) {
 
 			int check = 0;
-			if(!(nowTime.length()<=6) && !(nowTime.length()>=1)) {
+			if(!(time.length()<=6) && !(time.length()>=1)) {
 				System.out.println("1글자 이상 6글자 이하로 입력해주세요.");
-				continue; 
+				return null; 
 			}
-			if(!nowTime.contains(":")) {
-				if(nowTime.contains("시")) {
-					String[] s1 = nowTime.split("시");
+			if(!time.contains(":")) {
+				if(time.contains("시")) {
+					String[] s1 = time.split("시");
 					if(s1[1].contains("분")) {
 						String[] s2 = s1[1].split("분");
 						if(s1[0].length()==1) {
 							if(Integer.parseInt(s1[0])<0 || Integer.parseInt(s1[0])>9) {
-								continue;
+								return null;
 							}
 							String temp ="0";
 							s1[0] = temp.concat(s1[0]);
 							if(s2[0].length()==1&&Integer.parseInt(s2[0])>=0&&Integer.parseInt(s2[0])<=9){
 								String temp1 ="0"; 
 								s2[0] = temp1.concat(s2[0]);
-								nowTime = s1[0].concat(s2[0]);
-								System.out.println(nowTime);
-								break;
+								time = s1[0].concat(s2[0]);
+								System.out.println(time);
+								return time;
 							}
 							else if(s2[0].length()==2) {
 								if(Integer.parseInt(s2[0])>=0&&Integer.parseInt(s2[0])<=59) {
-									nowTime = s1[0].concat(s2[0]);
-									System.out.println(nowTime);
-									break;
+									time = s1[0].concat(s2[0]);
+									System.out.println(time);
+									return time;
 								}
-								continue;
+								return null;
 							}
 							else {
-								continue;
+								return null;
 							}
 						}
 						else if(s1[0].length()==2) {
 							if(Integer.parseInt(s1[0])<0 || Integer.parseInt(s1[0])>23) {
-								continue;
+								return null;
 							}
 							if(s2[0].length()==1&&Integer.parseInt(s2[0])>=0&&Integer.parseInt(s2[0])<=9){
 								String temp1 ="0"; 
 								s2[0] = temp1.concat(s2[0]);
-								nowTime = s1[0].concat(s2[0]);
-								System.out.println(nowTime);
-								break;
+								time = s1[0].concat(s2[0]);
+								System.out.println(time);
+								return time;
 							}
 							else if(s2[0].length()==2) {
 								if(Integer.parseInt(s2[0])>=0&&Integer.parseInt(s2[0])<=59) {
-									nowTime = s1[0].concat(s2[0]);
-									System.out.println(nowTime);
-									break;
+									time = s1[0].concat(s2[0]);
+									System.out.println(time);
+									return time;
 								}
-								continue;
+								return null;
 							}
 							else {
-								continue;
+								return null;
 							}
 
 						}
@@ -1232,107 +1434,106 @@ public class Main {
 								if(s2[0].length()==1&&Integer.parseInt(s2[0])>=0&&Integer.parseInt(s2[0])<=9){
 									String temp1 ="0"; 
 									s2[0] = temp1.concat(s2[0]);
-									nowTime = s1[0].concat(s2[0]);
-									System.out.println(nowTime);
-									break;
+									time = s1[0].concat(s2[0]);
+									System.out.println(time);
+									return time;
 								}
 								else if(s2[0].length()==2) {
 									if(Integer.parseInt(s2[0])>=0&&Integer.parseInt(s2[0])<=59) {
-										nowTime = s1[0].concat(s2[0]);
-										System.out.println(nowTime);
-										break;
+										time = s1[0].concat(s2[0]);
+										System.out.println(time);
+										return time;
 									}
-									continue;
+									return null;
 								}
 								else {
-									continue;
+									return null;
 								}
 							}
-							continue;
+							return null;
 						}
-						continue;    
+						return null;    
 					}
-					continue;
+					return null;
 				}
 			}
-			for(int i =0;i<nowTime.length();i++) {
-				if(nowTime.charAt(i) != ':') {
-					if(!Character.isDigit(nowTime.charAt(i))) {
+			for(int i =0;i<time.length();i++) {
+				if(time.charAt(i) != ':') {
+					if(!Character.isDigit(time.charAt(i))) {
 						check=1;
 					}
 				}
 			}
 			if(check==1) {
-				continue;
+				return null;
 			}
-			if(nowTime.contains(":")) {
-				String[] s = nowTime.split(":");
+			if(time.contains(":")) {
+				String[] s = time.split(":");
 
 
 				if(s[0].length()==1) {
 					if(Integer.parseInt(s[0])<0 || Integer.parseInt(s[0])>9) {
-						continue;
+						return null;
 					}
 					String temp ="0";
 					s[0] = temp.concat(s[0]);
 					if(s[1].length()==1) {
 						if(Integer.parseInt(s[1])<0 || Integer.parseInt(s[1])>9) {
-							continue;
+							return null;
 						}
 						String temp2 ="0";
 						s[1] = temp2.concat(s[1]);
-						nowTime = s[0].concat(s[1]);
-						System.out.println(nowTime);
-						break;
+						time = s[0].concat(s[1]);
+						System.out.println(time);
+						return time;
 					}
 					else if(s[1].length()==2) {
 						if(Integer.parseInt(s[1])<0 || Integer.parseInt(s[1])>59) {
-							continue;
+							return null;
 						}
-						nowTime = s[0].concat(s[1]);
-						System.out.println(nowTime);
-						break;
+						time = s[0].concat(s[1]);
+						System.out.println(time);
+						return time;
 					}
 					else if(s[1].length()==0) {
-						continue; 
+						return null; 
 					}
 				}
 				else if(s[0].length()==2) {
 					if(Integer.parseInt(s[0])<0 || Integer.parseInt(s[0])>23) {
-						continue;
+						return null;
 					}
 					if(s[1].length()==1) {
 						if(Integer.parseInt(s[1])<0 || Integer.parseInt(s[1])>9) {
-							continue;
+							return null;
 						}
 						String temp2 ="0";
 						s[1] = temp2.concat(s[1]);
-						nowTime = s[0].concat(s[1]);
-						System.out.println(nowTime);
-						break;
+						time = s[0].concat(s[1]);
+						System.out.println(time);
+						return time;
 					}
 					else if(s[1].length()==2) {
 						if(Integer.parseInt(s[1])<0 || Integer.parseInt(s[1])>59) {
-							continue;
+							return null;
 						}
-						nowTime = s[0].concat(s[1]);
-						System.out.println(nowTime);
-						break;
+						time = s[0].concat(s[1]);
+						System.out.println(time);
+						return time;
 					}
 					else if(s[1].length()==0) {
-						continue; 
+						return null; 
 					}
 
 				}
 				else if(s[0].length()==0) {
-					continue;
+					return null;
 				}
 
 			}
 		}
 
 	}
-
 
 
 	public static void showSeat(boolean[] seat) {
