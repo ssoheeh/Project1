@@ -412,7 +412,7 @@ public class Main {
 
 	public static void checkReservation(Member member) {
 		// TODO Auto-generated method stub
-	
+
 	}
 
 
@@ -1011,10 +1011,21 @@ public class Main {
 								System.out.println("한번에 1명이상 4명이하 좌석만 구매가능합니다.");
 								continue;
 							}
-							Bus bookedBus = bookSeat(dep,arr,depTime,seat);
-							if(bookedBus!=null) {
-								member.b.add(bookedBus);
-								return;
+							if(member.ticketCnt>0) {
+								Bus bookedBus = bookSeatTicket(nowDate,member,dep,arr,depTime,seat);
+								if(bookedBus!=null) {
+									member.b.add(bookedBus);
+									return;
+								}
+
+							}else {
+								Bus bookedBus = bookSeat(dep,arr,depTime,seat);
+								if(bookedBus!=null) {
+									member.b.add(bookedBus);
+									return;
+								}
+
+
 							}
 
 						}
@@ -1028,6 +1039,73 @@ public class Main {
 
 
 
+
+
+
+
+	private static Bus bookSeatTicket(String nowDate, Member member, String dep, String arr, String depTime, int seat) throws Exception {
+		// TODO Auto-generated method stub
+		for (int i = 0; i < bus.size(); i++) {
+			if(bus.get(i).startingPoint.equals(dep)&&bus.get(i).destination.equals(arr)) {
+				if(bus.get(i).startTime.equals(depTime)) {
+
+					if(bus.get(i).people+seat<=10) {
+						showSeat(bus.get(i).seat);
+						System.out.print("원하시는 좌석을 입력해주세요:(예:01)");
+						String wantSeat = br.readLine();
+						String[] temp = wantSeat.split(" ");
+						if(seat==temp.length) {
+							for (int j = 0; j < temp.length; j++) {
+								System.out.println("결제하시겠습니까?");
+								System.out.println("1. 네     2. 아니오");
+								int in = Integer.parseInt(br.readLine());
+								if(in==1) {
+									if(member.ticket[member.ticketCnt-1].type.equals("day")) {
+										if(!bus.get(i).seat[2*Character.getNumericValue(temp[j].charAt(0))+Character.getNumericValue(temp[j].charAt(1))]) {
+											bus.get(i).seat[2*Character.getNumericValue(temp[j].charAt(0))+Character.getNumericValue(temp[j].charAt(1))] = true;
+											System.out.println("기간제 정기권을 사용하여 예매 완료");
+											member.ticket[member.ticketCnt-1].remainDays--;
+											return bus.get(i);
+										}
+
+
+									}if(member.ticket[member.ticketCnt-1].type.equals("num")) {
+										if(!bus.get(i).seat[2*Character.getNumericValue(temp[j].charAt(0))+Character.getNumericValue(temp[j].charAt(1))]) {
+											bus.get(i).seat[2*Character.getNumericValue(temp[j].charAt(0))+Character.getNumericValue(temp[j].charAt(1))] = true;
+											System.out.println("정기권 사용 가능 횟수: "+member.ticket[member.ticketCnt-1].remainNum);
+											System.out.println("횟수제 정기권을 사용하여 예매 완료");
+											member.ticket[member.ticketCnt-1].remainNum--;
+											return bus.get(i);
+										}
+
+									}else {
+										if(!bus.get(i).seat[2*Character.getNumericValue(temp[j].charAt(0))+Character.getNumericValue(temp[j].charAt(1))]) {
+											bus.get(i).seat[2*Character.getNumericValue(temp[j].charAt(0))+Character.getNumericValue(temp[j].charAt(1))] = true;
+											writePoint(new Point(nowDate,nowTime,10000,1000), member);
+											System.out.println("예매 완료");
+											return bus.get(i);
+										}
+
+									}
+								}else {
+									System.out.println("결제 취소");
+									return null;
+								}
+							}
+
+						}else {
+							return null;
+						}
+
+					}else {
+						System.out.println("버스 예매 가능 좌석이 부족합니다.");
+
+					}
+				}
+			}
+		}
+		return null;
+	}
 
 
 
@@ -1061,10 +1139,12 @@ public class Main {
 								System.out.println("1. 네     2. 아니오");
 								int in = Integer.parseInt(br.readLine());
 								if(in==1) {
+									if(!bus.get(i).seat[2*Character.getNumericValue(temp[j].charAt(0))+Character.getNumericValue(temp[j].charAt(1))]) {
+										bus.get(i).seat[2*Character.getNumericValue(temp[j].charAt(0))+Character.getNumericValue(temp[j].charAt(1))] = true;
+										System.out.println("예매 완료");
+										return bus.get(i);
+									}
 
-									bus.get(i).seat[2*Character.getNumericValue(temp[j].charAt(0))+Character.getNumericValue(temp[j].charAt(1))] = true;
-									System.out.println("예매 완료");
-									return bus.get(i);
 								}else {
 									System.out.println("결제 취소");
 									return null;
@@ -1840,7 +1920,6 @@ public class Main {
 					String str = br.readLine();
 
 					while(str != null){
-						System.out.println("포인트");
 						String[] st = str.split(" ");
 						String s="";
 						for (int i = 0; i < st.length; i++) {
